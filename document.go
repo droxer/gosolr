@@ -40,6 +40,10 @@ func (doc *SolrDocument) Add(name string, value interface{}, boost float32) {
 	}
 }
 
+func (s *SolrDocument) Fields() map[string]*SolrField {
+	return s.fields
+}
+
 func (doc *SolrDocument) Get(name string) *SolrField {
 	return doc.fields[name]
 }
