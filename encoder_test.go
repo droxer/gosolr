@@ -11,10 +11,8 @@ func TestJSONEncode(t *testing.T) {
 	var doc = NewSolrDocument()
 	doc.Add("name", "value", float32(1.0))
 
-	encoder := &JSONEncoder{}
-
 	var w bytes.Buffer
-	encoder.Encode([]*SolrDocument{doc}, &w)
+	encode([]*SolrDocument{doc}, &w)
 
 	assert.Equal(t, `[{"name":"value"}]`, w.String())
 }
@@ -32,10 +30,9 @@ func TestJSONDecode(t *testing.T) {
           }
         }
     `
-	encoder := &JSONEncoder{}
 
 	resp := &SolrResponse{}
-	encoder.Decode(strings.NewReader(data), resp)
+	decode(strings.NewReader(data), resp)
 
 	assert.Equal(t, 400, resp.Header.Status)
 }
