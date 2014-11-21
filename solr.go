@@ -3,7 +3,6 @@ package gosolr
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -75,7 +74,7 @@ func (s *Solr) request(method, thePath string, headers, params map[string]string
 
 	req, err := http.NewRequest(method, requestUrl, buf)
 	if err != nil {
-		panic("error")
+		log.Panicln(err.Error())
 	}
 
 	for k, v := range headers {
@@ -85,7 +84,7 @@ func (s *Solr) request(method, thePath string, headers, params map[string]string
 	resp, err := s.httpClient.Do(req)
 	defer resp.Body.Close()
 	if resp == nil {
-		panic(err)
+		log.Panicln(err.Error())
 	}
 
 	solrResp := &SolrResponse{}
