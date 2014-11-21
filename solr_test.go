@@ -52,7 +52,7 @@ func TestDeleteById(t *testing.T) {
                 }
             `
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		assert.Equal(t, "/solr/collection1/update?commit=true&softCommit=false&wt=json", req.RequestURI)
+		assert.Equal(t, "/solr/collection1/update?commit=true&wt=json", req.RequestURI)
 		assert.Equal(t, "POST", req.Method)
 
 		data, _ := ioutil.ReadAll(req.Body)
@@ -79,7 +79,7 @@ func TestCommit(t *testing.T) {
                 }
             `
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		assert.Equal(t, "/solr/collection1/update?commit=true&softCommit=false&wt=json", req.RequestURI)
+		assert.Equal(t, "/solr/collection1/update?commit=true&wt=json", req.RequestURI)
 		assert.Equal(t, "GET", req.Method)
 
 		w.Header().Set("Content-Type", "text/plain")

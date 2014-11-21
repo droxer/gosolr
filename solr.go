@@ -11,15 +11,6 @@ import (
 	"time"
 )
 
-var (
-	headers = map[string]string{
-		"Content-Type": "application/json",
-	}
-	params = map[string]string{
-		"wt": "json",
-	}
-)
-
 type Document struct {
 	CommitWithin int32                  `json:"commitWithin"`
 	Overwrite    bool                   `json:"overwrite"`
@@ -48,10 +39,31 @@ func NewSolr(connectionString string, timeout time.Duration) *Solr {
 	return server
 }
 
+func (s *Solr) Search(query string, params map[string]string) (*SolrResponse, error) {
+	var (
+		path    = "/select"
+		buf     bytes.Buffer
+		headers = map[string]string{
+			"Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+		}
+	)
+
+	params["wt"] = "json"
+	params["q"] = query
+	buf.WriteString("")
+	return s.request("GET", path, headers, params, &buf)
+}
+
 func (s *Solr) Add(doc *Document, commit, softCommit bool) (*SolrResponse, error) {
 	var (
-		path   = "/update"
-		buf    bytes.Buffer
+		path    = "/update"
+		buf     bytes.Buffer
+		headers = map[string]string{
+			"Content-Type": "application/json",
+		}
+		params = map[string]string{
+			"wt": "json",
+		}
 		addReq = map[string]*Document{
 			"add": doc,
 		}
@@ -70,9 +82,17 @@ func (s *Solr) Add(doc *Document, commit, softCommit bool) (*SolrResponse, error
 }
 
 func (s *Solr) DeleteById(id string, commit bool) (*SolrResponse, error) {
-	var buf bytes.Buffer
-	var path = "/update"
-	var delReq = make(map[string]interface{})
+	var (
+		path    = "/update"
+		buf     bytes.Buffer
+		headers = map[string]string{
+			"Content-Type": "application/json",
+		}
+		params = map[string]string{
+			"wt": "json",
+		}
+		delReq = make(map[string]interface{})
+	)
 
 	delReq["delete"] = map[string]string{
 		"id": id,
@@ -86,8 +106,16 @@ func (s *Solr) DeleteById(id string, commit bool) (*SolrResponse, error) {
 }
 
 func (s *Solr) Commit() (*SolrResponse, error) {
-	var buf bytes.Buffer
-	var path = "/update"
+	var (
+		path    = "/update"
+		buf     bytes.Buffer
+		headers = map[string]string{
+			"Content-Type": "application/json",
+		}
+		params = map[string]string{
+			"wt": "json",
+		}
+	)
 
 	params["commit"] = "true"
 	return s.request("GET", path, headers, params, &buf)
@@ -114,7 +142,7 @@ func (s *Solr) request(method, thePath string, headers, params map[string]string
 
 	solrResp := &SolrResponse{}
 	data, _ := ioutil.ReadAll(resp.Body)
-	json.Unmarshal(data, solrResp)
 
+	json.Unmarshal(data, solrResp)
 	return solrResp, err
 }
