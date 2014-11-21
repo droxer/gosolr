@@ -1,18 +1,23 @@
 package gosolr
 
 type SolrResponse struct {
-	Header   *Header   `json:"responseHeader"`
-	Response *Response `json:"error,omitempty"`
-	Error    Error     `json:"error,omitempty"`
+	Header Header `json:"responseHeader"`
+	Result Result `json:"response,omitempty"`
+	Error  Error  `json:"error,omitempty"`
 }
 
 type Header struct {
 	Status int
 	QTime  int
-	Params *Params `json:"params,omitempty"`
+	Params Params `json:"params,omitempty"`
 }
 
-type Response struct {
+type Doc map[string]interface{}
+
+type Result struct {
+	NumFound int   `json:"numFound"`
+	Start    int   `json:"start"`
+	Docs     []Doc `json:"docs"`
 }
 
 type Error struct {
@@ -23,6 +28,5 @@ type Error struct {
 type Params struct {
 	Indent bool
 	Q      string
-	_      string
-	wt     string
+	WT     string
 }
