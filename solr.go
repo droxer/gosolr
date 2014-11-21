@@ -82,8 +82,15 @@ func (s *Solr) DeleteById(id string, commit bool) (*SolrResponse, error) {
 	buf.WriteString(string(data))
 
 	params["commit"] = strconv.FormatBool(commit)
-
 	return s.request("POST", path, headers, params, &buf)
+}
+
+func (s *Solr) Commit() (*SolrResponse, error) {
+	var buf bytes.Buffer
+	var path = "/update"
+
+	params["commit"] = "true"
+	return s.request("GET", path, headers, params, &buf)
 }
 
 func (s *Solr) request(method, thePath string, headers, params map[string]string, buf *bytes.Buffer) (*SolrResponse, error) {
