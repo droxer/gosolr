@@ -2,11 +2,30 @@ package gosolr
 
 import (
 	"bytes"
+	"encoding/json"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
 )
+
+var (
+	headers = map[string]string{
+		"Content-Type": "application/json",
+	}
+	params = map[string]string{
+		"wt": "json",
+	}
+)
+
+type Document struct {
+	CommitWithin int32                  `json:"commitWithin"`
+	Overwrite    bool                   `json:"overwrite"`
+	Boost        float32                `json:"boost"`
+	Doc          map[string]interface{} `json:"doc"`
+}
 
 type Solr struct {
 	url        *url.URL
@@ -29,19 +48,21 @@ func NewSolr(connectionString string, timeout time.Duration) *Solr {
 	return server
 }
 
-func (s *Solr) Add(docs []*SolrDocument, commit, softCommit bool) (*SolrResponse, error) {
+func (s *Solr) Add(doc *Document, commit, softCommit bool) (*SolrResponse, error) {
 	var (
-		path    = "/update"
-		headers = map[string]string{
-			"Content-Type": "application/json",
-		}
-		params = map[string]string{
-			"wt": "json",
+		path   = "/update"
+		buf    bytes.Buffer
+		addReq = map[string]*Document{
+			"add": doc,
 		}
 	)
 
-	var buf bytes.Buffer
-	encode(docs, &buf)
+	b, err := json.Marshal(addReq)
+	if err != nil {
+		log.Panicln(err.Error())
+	}
+
+	buf.Write(b)
 	params["commit"] = strconv.FormatBool(commit)
 	params["softCommit"] = strconv.FormatBool(softCommit)
 
@@ -49,14 +70,29 @@ func (s *Solr) Add(docs []*SolrDocument, commit, softCommit bool) (*SolrResponse
 }
 
 func (s *Solr) DeleteById(id string, commit bool) (*SolrResponse, error) {
-	return nil, nil
+	var buf bytes.Buffer
+	var path = "/update"
+	var delReq = make(map[string]interface{})
+
+	delReq["delete"] = map[string]string{
+		"id": id,
+	}
+
+	data, _ := json.Marshal(delReq)
+	buf.WriteString(string(data))
+
+	params["commit"] = strconv.FormatBool(commit)
+
+	return s.request("POST", path, headers, params, &buf)
 }
 
 func (s *Solr) request(method, thePath string, headers, params map[string]string, buf *bytes.Buffer) (*SolrResponse, error) {
+	var requestUrl = s.url.String() + thePath + "?" + multimap(params).Encode()
+	log.Println(requestUrl)
 
-	req, err := http.NewRequest(method, s.url.String()+thePath+"?"+multimap(params).Encode(), buf)
+	req, err := http.NewRequest(method, requestUrl, buf)
 	if err != nil {
-		panic("error")
+		log.Panicln(err.Error())
 	}
 
 	for k, v := range headers {
@@ -66,11 +102,12 @@ func (s *Solr) request(method, thePath string, headers, params map[string]string
 	resp, err := s.httpClient.Do(req)
 	defer resp.Body.Close()
 	if resp == nil {
-		panic(err)
+		log.Panicln(err.Error())
 	}
 
 	solrResp := &SolrResponse{}
-	decode(resp.Body, solrResp)
+	data, _ := ioutil.ReadAll(resp.Body)
+	json.Unmarshal(data, solrResp)
 
 	return solrResp, err
 }
