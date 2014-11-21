@@ -3,6 +3,7 @@ package gosolr
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -18,6 +19,13 @@ var (
 		"wt": "json",
 	}
 )
+
+type Document struct {
+	CommitWithin int32                  `json:"commitWithin"`
+	Overwrite    bool                   `json:"overwrite"`
+	Boost        float32                `json:"boost"`
+	Doc          map[string]interface{} `json:"doc"`
+}
 
 type Solr struct {
 	url        *url.URL
@@ -40,11 +48,21 @@ func NewSolr(connectionString string, timeout time.Duration) *Solr {
 	return server
 }
 
-func (s *Solr) Add(docs []*SolrDocument, commit, softCommit bool) (*SolrResponse, error) {
-	var path = "/update"
+func (s *Solr) Add(doc *Document, commit, softCommit bool) (*SolrResponse, error) {
+	var (
+		path   = "/update"
+		buf    bytes.Buffer
+		addReq = map[string]*Document{
+			"add": doc,
+		}
+	)
 
-	var buf bytes.Buffer
-	encode(docs, &buf)
+	b, err := json.Marshal(addReq)
+	if err != nil {
+		log.Panicln(err.Error())
+	}
+
+	buf.Write(b)
 	params["commit"] = strconv.FormatBool(commit)
 	params["softCommit"] = strconv.FormatBool(softCommit)
 
@@ -54,13 +72,13 @@ func (s *Solr) Add(docs []*SolrDocument, commit, softCommit bool) (*SolrResponse
 func (s *Solr) DeleteById(id string, commit bool) (*SolrResponse, error) {
 	var buf bytes.Buffer
 	var path = "/update"
-	var payload = make(map[string]interface{})
+	var delReq = make(map[string]interface{})
 
-	payload["delete"] = map[string]string{
+	delReq["delete"] = map[string]string{
 		"id": id,
 	}
 
-	data, _ := json.Marshal(payload)
+	data, _ := json.Marshal(delReq)
 	buf.WriteString(string(data))
 
 	params["commit"] = strconv.FormatBool(commit)
@@ -88,7 +106,8 @@ func (s *Solr) request(method, thePath string, headers, params map[string]string
 	}
 
 	solrResp := &SolrResponse{}
-	decode(resp.Body, solrResp)
+	data, _ := ioutil.ReadAll(resp.Body)
+	json.Unmarshal(data, solrResp)
 
 	return solrResp, err
 }
