@@ -10,6 +10,14 @@ import (
 )
 
 func TestAddDoc(t *testing.T) {
+	var resp = `
+                {
+                  "responseHeader": {
+                    "status": 200,
+                    "QTime": 0
+                  }
+                }
+            `
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		assert.Equal(t, "/solr/collection1/update?commit=true&softCommit=false&wt=json", req.RequestURI)
 		assert.Equal(t, "POST", req.Method)
@@ -18,7 +26,7 @@ func TestAddDoc(t *testing.T) {
 
 		assert.Equal(t, `[{"documentid":118523475}]`, string(data))
 		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("ok"))
+		w.Write([]byte(resp))
 	}))
 	defer ts.Close()
 
@@ -26,35 +34,6 @@ func TestAddDoc(t *testing.T) {
 	doc := NewSolrDocument()
 	doc.Add("documentid", 118523475, float32(1.0))
 
-	solr.Add([]*SolrDocument{doc}, true, false)
-}
-
-func TestSolrRep(t *testing.T) {
-	var resp = `
-                {
-                  "responseHeader": {
-                    "status": 400,
-                    "QTime": 1
-                  },
-                  "error": {
-                    "msg": "Document is missing mandatory uniqueKey field: documentid",
-                    "code": 400
-                  }
-                }
-            `
-
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte(resp))
-	}))
-	defer ts.Close()
-
-	server := NewSolr(ts.URL+"/solr/collection1", time.Second*10)
-
-	doc := NewSolrDocument()
-	doc.Add("documentid", 118523475, float32(1.0))
-
-	solrRep, _ := server.Add([]*SolrDocument{doc}, true, true)
-
-	assert.Equal(t, "Document is missing mandatory uniqueKey field: documentid", solrRep.Error.Msg)
+	solrRep, _ := solr.Add([]*SolrDocument{doc}, true, false)
+	assert.Equal(t, 200, solrRep.Header.Status)
 }

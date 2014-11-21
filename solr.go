@@ -2,10 +2,22 @@ package gosolr
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+)
+
+var (
+	headers = map[string]string{
+		"Content-Type": "application/json",
+	}
+	params = map[string]string{
+		"wt": "json",
+	}
 )
 
 type Solr struct {
@@ -30,15 +42,7 @@ func NewSolr(connectionString string, timeout time.Duration) *Solr {
 }
 
 func (s *Solr) Add(docs []*SolrDocument, commit, softCommit bool) (*SolrResponse, error) {
-	var (
-		path    = "/update"
-		headers = map[string]string{
-			"Content-Type": "application/json",
-		}
-		params = map[string]string{
-			"wt": "json",
-		}
-	)
+	var path = "/update"
 
 	var buf bytes.Buffer
 	encode(docs, &buf)
@@ -49,12 +53,27 @@ func (s *Solr) Add(docs []*SolrDocument, commit, softCommit bool) (*SolrResponse
 }
 
 func (s *Solr) DeleteById(id string, commit bool) (*SolrResponse, error) {
-	return nil, nil
+	var buf bytes.Buffer
+	var path = "/update"
+	var payload = make(map[string]interface{})
+
+	payload["delete"] = map[string]string{
+		"id": id,
+	}
+
+	data, _ := json.Marshal(payload)
+	buf.WriteString(string(data))
+
+	params["commit"] = strconv.FormatBool(commit)
+
+	return s.request("POST", path, headers, params, &buf)
 }
 
 func (s *Solr) request(method, thePath string, headers, params map[string]string, buf *bytes.Buffer) (*SolrResponse, error) {
+	var requestUrl = s.url.String() + thePath + "?" + multimap(params).Encode()
+	log.Println(requestUrl)
 
-	req, err := http.NewRequest(method, s.url.String()+thePath+"?"+multimap(params).Encode(), buf)
+	req, err := http.NewRequest(method, requestUrl, buf)
 	if err != nil {
 		panic("error")
 	}
