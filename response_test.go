@@ -16,6 +16,19 @@ var rawResp = `
                 "wt":"json"
                 }
         },
+        "terms":{
+            "compName_s": ["A-Data Technology",1,
+                           "ASUS Computer", 1,
+                            "ATI Technologies", 1,
+                            "Apple",1,
+                            "Belkin",1,
+                            "Canon, Inc.",1,
+                            "Corsair Microsystems",1,
+                            "Dell, Inc.",1,
+                            "Maxtor Corporation",1,
+                            "Samsung Electronics Co. Ltd.",1
+                            ]
+        },
         "response":{
             "numFound":1,
             "start":0,
@@ -38,6 +51,11 @@ func TestResponseStruct(t *testing.T) {
 	assert.Equal(t, 0, resp.Header.QTime)
 	assert.Equal(t, "documentid:22222222", resp.Header.Params.Q)
 	assert.Equal(t, "json", resp.Header.Params.WT)
+
+	assert.Equal(t, 1, len(resp.Terms))
+	assert.Equal(t, 20, len(resp.Terms["compName_s"]))
+	assert.Equal(t, "A-Data Technology", resp.Terms["compName_s"][0].(string))
+	assert.Equal(t, 1, resp.Terms["compName_s"][1].(float64))
 
 	assert.Equal(t, 1, resp.Result.NumFound)
 	assert.Equal(t, 0, resp.Result.Start)
