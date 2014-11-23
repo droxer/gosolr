@@ -54,6 +54,20 @@ func (s *Solr) Search(query string, params map[string]string) (*SolrResponse, er
 	return s.request("GET", path, headers, params, &buf)
 }
 
+func (s *Solr) SuggestTerms(params map[string]string) (*SolrResponse, error) {
+	var (
+		path    = "/terms"
+		buf     bytes.Buffer
+		headers = map[string]string{
+			"Content-Type": "application/json",
+		}
+	)
+
+	params["wt"] = "json"
+	buf.WriteString("")
+	return s.request("GET", path, headers, params, &buf)
+}
+
 func (s *Solr) Add(doc *Document, commit, softCommit bool) (*SolrResponse, error) {
 	var (
 		path    = "/update"

@@ -1,9 +1,12 @@
 package gosolr
 
+type Term []interface{}
+
 type SolrResponse struct {
-	Header Header `json:"responseHeader"`
-	Result Result `json:"response,omitempty"`
-	Error  Error  `json:"error,omitempty"`
+	Header Header          `json:"responseHeader,omitempty"`
+	Terms  map[string]Term `json:"terms,omitempty"`
+	Result Result          `json:"response,omitempty"`
+	Error  Error           `json:"error,omitempty"`
 }
 
 type Header struct {
