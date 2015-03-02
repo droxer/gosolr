@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-  solr := gosolr.NewSolr("http://localhost:8983/solr/collection1", time.Second*5)
+  solr := gosolr.New("http://localhost:8983/solr/collection1", time.Second*5)
 
   var doc = &gosolr.Document{
     Doc: map[string]interface{}{

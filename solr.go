@@ -23,7 +23,7 @@ type Solr struct {
 	httpClient http.Client
 }
 
-func NewSolr(connectionString string, timeout time.Duration) *Solr {
+func New(connectionString string, timeout time.Duration) *Solr {
 	url, err := url.Parse(connectionString)
 	if err != nil {
 		panic(err)

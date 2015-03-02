@@ -30,7 +30,7 @@ func TestAdd(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	solr := NewSolr(ts.URL+"/solr/collection1", time.Second*10)
+	solr := New(ts.URL+"/solr/collection1", time.Second*10)
 
 	doc := &Document{
 		Doc: map[string]interface{}{
@@ -63,7 +63,7 @@ func TestDeleteById(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	solr := NewSolr(ts.URL+"/solr/collection1", time.Second*10)
+	solr := New(ts.URL+"/solr/collection1", time.Second*10)
 
 	solrRep, _ := solr.DeleteById("123456", true)
 	assert.Equal(t, 200, solrRep.Header.Status)
@@ -87,7 +87,7 @@ func TestCommit(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	solr := NewSolr(ts.URL+"/solr/collection1", time.Second*10)
+	solr := New(ts.URL+"/solr/collection1", time.Second*10)
 
 	solrRep, _ := solr.Commit()
 	assert.Equal(t, 200, solrRep.Header.Status)
