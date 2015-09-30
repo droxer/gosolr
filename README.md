@@ -1,5 +1,7 @@
 # gosolr [![GoDoc](https://godoc.org/github.com/droxer/gosolr?status.svg)](https://godoc.org/github.com/droxer/gosolr)
 
+[![Build Status](https://travis-ci.org/droxer/gosolr.svg?branch=master)](https://travis-ci.org/droxer/gosolr)
+
 Apache Solr client implementation by go.
 
 This is **draft** implementation for now. Contribute is more than welcome.
